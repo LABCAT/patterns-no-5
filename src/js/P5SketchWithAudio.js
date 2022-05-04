@@ -5,8 +5,8 @@ import * as p5 from "p5";
 import { Midi } from '@tonejs/midi'
 import PlayIcon from './functions/PlayIcon.js';
 
-import audio from "../audio/circles-no-3.ogg";
-import midi from "../audio/circles-no-3.mid";
+import audio from "../audio/patterns-no-5.ogg";
+import midi from "../audio/patterns-no-5.mid";
 
 const P5SketchWithAudio = () => {
     const sketchRef = useRef();
@@ -64,6 +64,19 @@ const P5SketchWithAudio = () => {
         }
 
         p.draw = () => {
+            p.noFill();
+            p.stroke(255);
+            p.line(0, 0, 100, 100);
+            p.rect(0, 0, 100, 100);
+            
+            p.beginShape();
+            p.vertex(0, 0);
+            p.bezierVertex(75, 25, 25, 75, 100, 100);
+            p.endShape();
+            p.beginShape();
+            p.vertex(0, 0);
+            p.bezierVertex(25, 75, 75, 25, 100, 100);
+            p.endShape();
             if(p.audioLoaded && p.song.isPlaying()){
 
             }
