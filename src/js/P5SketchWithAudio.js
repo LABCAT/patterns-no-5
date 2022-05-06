@@ -28,7 +28,8 @@ const P5SketchWithAudio = () => {
         p.loadMidi = () => {
             Midi.fromUrl(midi).then(
                 function(result) {
-                    const noteSet1 = result.tracks[5].notes; // Synth 1
+                    console.log(result);
+                    const noteSet1 = result.tracks[5].notes; // Thor 3 - Mound of Wires
                     p.scheduleCueSet(noteSet1, 'executeCueSet1');
                     p.audioLoaded = true;
                     document.getElementById("loader").classList.add("loading--complete");
@@ -58,35 +59,104 @@ const P5SketchWithAudio = () => {
             }
         } 
 
+        p.gridDivisors = [8, 16, 32, 64, 128];
+
+        p.gridDivisor = 16;
+
+        p.gridCells = [];
+
+        p.cellSize = 0;
+
+        p.createGrid = () => {
+            p.gridCells = [];
+            p.gridDivisor = p.random(p.gridDivisors);
+            p.cellSize = p.width / p.gridDivisor;
+            for (let x = 0; x < p.width; x = x + p.cellSize) {
+                for (let y = 0; y < p.height; y = y + p.cellSize) {
+                    p.gridCells.push(
+                        {
+                            x: x,
+                            y: y,
+                        }
+                    );
+                } 
+            } 
+        }
+
         p.setup = () => {
             p.canvas = p.createCanvas(p.canvasWidth, p.canvasHeight);
+            p.colorMode(p.HSB);
             p.background(0);
+            p.noFill();
+            p.stroke(255);
+            p.noLoop();
         }
 
         p.draw = () => {
-            p.noFill();
-            p.stroke(255);
-            p.line(0, 0, 100, 100);
-            p.rect(0, 0, 100, 100);
-            
-            p.beginShape();
-            p.vertex(0, 0);
-            p.bezierVertex(75, 25, 25, 75, 100, 100);
-            p.endShape();
-            p.beginShape();
-            p.vertex(0, 0);
-            p.bezierVertex(25, 75, 75, 25, 100, 100);
-            p.endShape();
             if(p.audioLoaded && p.song.isPlaying()){
 
             }
         }
 
         p.executeCueSet1 = (note) => {
-            p.background(p.random(255), p.random(255), p.random(255));
-            p.fill(p.random(255), p.random(255), p.random(255));
-            p.noStroke();
-            p.ellipse(p.width / 2, p.height / 2, p.width / 4, p.width / 4);
+            p.createGrid();
+            p.background(0);
+            for (let i = 0; i < p.gridCells.length; i++) {
+                p.stroke(p.random(0, 360), 100, 100);
+                const cell = p.gridCells[i], 
+                    {x, y} = cell, 
+                    quarterCell = p.cellSize / 4;
+                if(Math.random() > 0.5){
+                    p.line(x, y, x + p.cellSize, y + p.cellSize);
+                    p.beginShape();
+                    p.vertex(x, y);
+                    p.bezierVertex(
+                        x + quarterCell * 3, 
+                        y + quarterCell * 1, 
+                        x + quarterCell * 1, 
+                        y + quarterCell * 3, 
+                        x + p.cellSize, 
+                        y + p.cellSize
+                    );
+                    p.endShape();
+                    p.beginShape();
+                    p.vertex(x, y);
+                    p.bezierVertex(
+                        x + quarterCell * 1, 
+                        y + quarterCell * 3, 
+                        x + quarterCell * 3, 
+                        y + quarterCell * 1,
+                        x + p.cellSize, 
+                        y + p.cellSize
+                    );
+                    p.endShape();
+                }
+                else {
+                    p.line(x + p.cellSize, y, x, y + p.cellSize);
+                    p.beginShape();
+                    p.vertex(x + p.cellSize, y);
+                    p.bezierVertex(
+                        x + quarterCell * 1, 
+                        y + quarterCell * 1, 
+                        x + quarterCell * 3, 
+                        y + quarterCell * 3, 
+                        x, 
+                        y + p.cellSize
+                    );
+                    p.endShape();
+                    p.beginShape();
+                    p.vertex(x + p.cellSize, y);
+                    p.bezierVertex(
+                        x + quarterCell * 3, 
+                        y + quarterCell * 3, 
+                        x + quarterCell * 1, 
+                        y + quarterCell * 1,
+                        x, 
+                        y + p.cellSize
+                    );
+                    p.endShape();
+                }
+            }
         }
 
         p.mousePressed = () => {
