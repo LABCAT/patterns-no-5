@@ -4,6 +4,7 @@ import "p5/lib/addons/p5.sound";
 import * as p5 from "p5";
 import { Midi } from '@tonejs/midi'
 import PlayIcon from './functions/PlayIcon.js';
+import ShuffleArray from './functions/ShuffleArray.js';
 
 import audio from "../audio/patterns-no-5.ogg";
 import midi from "../audio/patterns-no-5.mid";
@@ -59,30 +60,6 @@ const P5SketchWithAudio = () => {
             }
         } 
 
-        p.gridDivisors = [8, 16, 32, 64, 128];
-
-        p.gridDivisor = 16;
-
-        p.gridCells = [];
-
-        p.cellSize = 0;
-
-        p.createGrid = () => {
-            p.gridCells = [];
-            p.gridDivisor = p.random(p.gridDivisors);
-            p.cellSize = p.width / p.gridDivisor;
-            for (let x = 0; x < p.width; x = x + p.cellSize) {
-                for (let y = 0; y < p.height; y = y + p.cellSize) {
-                    p.gridCells.push(
-                        {
-                            x: x,
-                            y: y,
-                        }
-                    );
-                } 
-            } 
-        }
-
         p.setup = () => {
             p.canvas = p.createCanvas(p.canvasWidth, p.canvasHeight);
             p.colorMode(p.HSB);
@@ -99,15 +76,30 @@ const P5SketchWithAudio = () => {
         }
 
         p.executeCueSet1 = (note) => {
-            p.createGrid();
+            const { duration, durationTicks } = note, 
+                gridDivisors = durationTicks > 20000 ? [24, 48, 72] : [6, 9, 12], 
+                complex = Math.random() > 0.5;
+            p.createGrid(gridDivisors);
             p.background(0);
+            const delayAmount = parseInt(duration * 1000) / p.gridCells.length;
             for (let i = 0; i < p.gridCells.length; i++) {
-                p.stroke(p.random(0, 360), 100, 100);
-                const cell = p.gridCells[i], 
-                    {x, y} = cell, 
-                    quarterCell = p.cellSize / 4;
-                if(Math.random() > 0.5){
-                    p.line(x, y, x + p.cellSize, y + p.cellSize);
+                const cell = p.gridCells[i];
+                setTimeout(
+                    function () {
+                        p.drawCell(cell, complex);
+                    },
+                    ((delayAmount / 8 * 6.5) * i)
+                );
+            }
+        }
+
+        p.drawCell = (cell, complex) => {
+            const {x, y, size} = cell, 
+                quarterCell = size / 4;
+            p.stroke(p.random(0, 360), 100, 100);
+            if(Math.random() > 0.5){
+                p.line(x, y, x + size, y + size);
+                if(complex) {
                     p.beginShape();
                     p.vertex(x, y);
                     p.bezierVertex(
@@ -115,8 +107,8 @@ const P5SketchWithAudio = () => {
                         y + quarterCell * 1, 
                         x + quarterCell * 1, 
                         y + quarterCell * 3, 
-                        x + p.cellSize, 
-                        y + p.cellSize
+                        x + size, 
+                        y + size
                     );
                     p.endShape();
                     p.beginShape();
@@ -126,37 +118,62 @@ const P5SketchWithAudio = () => {
                         y + quarterCell * 3, 
                         x + quarterCell * 3, 
                         y + quarterCell * 1,
-                        x + p.cellSize, 
-                        y + p.cellSize
-                    );
-                    p.endShape();
-                }
-                else {
-                    p.line(x + p.cellSize, y, x, y + p.cellSize);
-                    p.beginShape();
-                    p.vertex(x + p.cellSize, y);
-                    p.bezierVertex(
-                        x + quarterCell * 1, 
-                        y + quarterCell * 1, 
-                        x + quarterCell * 3, 
-                        y + quarterCell * 3, 
-                        x, 
-                        y + p.cellSize
-                    );
-                    p.endShape();
-                    p.beginShape();
-                    p.vertex(x + p.cellSize, y);
-                    p.bezierVertex(
-                        x + quarterCell * 3, 
-                        y + quarterCell * 3, 
-                        x + quarterCell * 1, 
-                        y + quarterCell * 1,
-                        x, 
-                        y + p.cellSize
+                        x + size, 
+                        y + size
                     );
                     p.endShape();
                 }
             }
+            else {
+                p.line(x + size, y, x, y + size);
+                if(complex) {
+                    p.beginShape();
+                    p.vertex(x + size, y);
+                    p.bezierVertex(
+                        x + quarterCell * 1, 
+                        y + quarterCell * 1, 
+                        x + quarterCell * 3, 
+                        y + quarterCell * 3, 
+                        x, 
+                        y + size
+                    );
+                    p.endShape();
+                    p.beginShape();
+                    p.vertex(x + size, y);
+                    p.bezierVertex(
+                        x + quarterCell * 3, 
+                        y + quarterCell * 3, 
+                        x + quarterCell * 1, 
+                        y + quarterCell * 1,
+                        x, 
+                        y + size
+                    );
+                    p.endShape();
+                    }
+            }
+        }
+
+        p.gridDivisor = 16;
+
+        p.gridCells = [];
+
+        p.createGrid = (gridDivisors = [8, 16, 32, 64, 96]) => {
+            p.gridCells = [];
+            p.gridDivisor = p.random(gridDivisors);
+            const size = p.width / p.gridDivisor;
+            for (let x = 0; x < p.width; x = x + size) {
+                for (let y = 0; y < p.height; y = y + size) {
+                    p.gridCells.push(
+                        {
+                            x: x,
+                            y: y,
+                            size: size,
+                        }
+                    );
+                } 
+            } 
+
+            p.gridCells = ShuffleArray(p.gridCells);
         }
 
         p.mousePressed = () => {
