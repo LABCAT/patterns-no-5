@@ -35,6 +35,7 @@ const P5SketchWithAudio = () => {
                     p.audioLoaded = true;
                     document.getElementById("loader").classList.add("loading--complete");
                     document.getElementById("play-icon").classList.remove("fade-out");
+                    document.getElementById("play-icon").style.fill = p.backgroundColour ? '#000' : '#FFF';
                 }
             );
             
@@ -61,11 +62,13 @@ const P5SketchWithAudio = () => {
         } 
 
         p.setup = () => {
+            p.backgroundColour = Math.random() > 0.5 ? 255 : 0;
             p.canvas = p.createCanvas(p.canvasWidth, p.canvasHeight);
             p.colorMode(p.HSB);
-            p.background(0);
+            p.background(p.backgroundColour);
             p.noFill();
             p.stroke(255);
+            p.strokeWeight(2);
             p.noLoop();
         }
 
@@ -78,25 +81,29 @@ const P5SketchWithAudio = () => {
         p.executeCueSet1 = (note) => {
             const { duration, durationTicks } = note, 
                 gridDivisors = durationTicks > 20000 ? [24, 48, 72] : [6, 9, 12], 
-                complex = Math.random() > 0.5;
+                complex = Math.random() > 0.5,
+                stroke = Math.random() > 0.7 ? 'random' : p.random(0, 360);
             p.createGrid(gridDivisors);
-            p.background(0);
+            p.background(p.backgroundColour);
             const delayAmount = parseInt(duration * 1000) / p.gridCells.length;
             for (let i = 0; i < p.gridCells.length; i++) {
                 const cell = p.gridCells[i];
                 setTimeout(
                     function () {
-                        p.drawCell(cell, complex);
+                        p.drawCell(cell, complex, stroke);
                     },
-                    ((delayAmount / 8 * 6.5) * i)
+                    ((delayAmount / 8 * 6) * i)
                 );
             }
         }
 
-        p.drawCell = (cell, complex) => {
+        p.drawCell = (cell, complex, stroke) => {
             const {x, y, size} = cell, 
                 quarterCell = size / 4;
-            p.stroke(p.random(0, 360), 100, 100);
+            p.stroke(stroke, 100, 100);
+            if(stroke === 'random') {
+                p.stroke(p.random(0, 360), 100, 100);
+            }
             if(Math.random() > 0.5){
                 p.line(x, y, x + size, y + size);
                 if(complex) {
